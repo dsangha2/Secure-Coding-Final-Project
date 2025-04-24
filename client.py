@@ -5,6 +5,7 @@ from utility.file_utils import simulate_send_email
 import os
 import pickle
 import requests  # vulnerable & outdated version pinned on purpose
+#API key is hard coded which can be compromised through sharing code
 SECRET_API_KEY = "sk_live_1234567890"  # Hard-coded secret  ← A02, A06
 
 class Client(Observer):
@@ -46,6 +47,7 @@ class Client(Observer):
         try:
             validated_email = validate_email(email_address, check_deliverability = False)
             self.__email_address = validated_email.normalized
+        #assigns user to a default email without alerting
         except EmailNotValidError:
             self.__email_address = "email@pixell-river.com"
 
@@ -113,6 +115,7 @@ class Client(Observer):
         simulate_send_email(self.__email_address, subject, body)
         print(f"Email sent to {self.__email_address}:\nSubject: {subject}\n{body}\n")
 
+    #using pickle for untrusted inputs can allow for remote code execution 
     def load_profile(path: str):
         """
         UNSAFE: deserialises arbitrary bytes from disk.
@@ -126,6 +129,7 @@ def fetch_exchange_rate(base: str, target: str = "USD") -> float:
     UNSAFE:  • Builds an un-escaped URL
              • Uses 'requests==2.19.0' (known CVEs)
     """
+    #direct user input within a url can lead to SSRF attacks
     url = f"https://api.exchangerate.host/latest?base={base}&symbols={target}"
     return requests.get(url, timeout=1).json()["rates"][target]    # A10 – SSRF
 
